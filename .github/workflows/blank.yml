@@ -1,0 +1,43 @@
+name: Deploy Informatica IDMC to QA/Int
+
+on:
+  push:
+    branches:
+      - dev  # Trigger only when code is pushed to the dev branch
+
+jobs:
+  request-approval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request Manual Approval
+        uses: hmarr/auto-approve-action@v4.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      
+  deploy-to-idmc:
+    needs: request-approval
+    runs-on: ubuntu-latest
+    environment:
+      name: QA  # Use GitHub environment for approvals
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+      
+      - name: Authenticate with Informatica IDMC
+        run: |
+          curl -X POST "https://<INFORMATICA_BASE_URL>/api/v2/login" \
+            -H "Content-Type: application/json" \
+            -d '{"username": "${{ secrets.IDMC_USERNAME }}", "password": "${{ secrets.IDMC_PASSWORD }}"}' \
+            -o response.json
+          TOKEN=$(jq -r '.token' response.json)
+          echo "TOKEN=$TOKEN" >> $GITHUB_ENV
+      
+      - name: Deploy to Informatica IDMC QA/Int
+        run: |
+          curl -X POST "https://<INFORMATICA_BASE_URL>/api/v2/deploy" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $TOKEN" \
+            -d '{"sourceOrg": "DEV", "targetOrg": "QA", "assets": ["all"]}'
+
+      - name: Deployment Success Message
+        run: echo "Deployment to Informatica IDMC QA/Int successful!"
