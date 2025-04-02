@@ -25,7 +25,7 @@ jobs:
       
       - name: Authenticate with Informatica IDMC
         run: |
-          curl -X POST "https://<INFORMATICA_BASE_URL>/api/v2/login" \
+          curl -X POST "https://dm-us.informaticacloud.com/api/v2/login" \
             -H "Content-Type: application/json" \
             -d '{"username": "${{ secrets.IDMC_USERNAME }}", "password": "${{ secrets.IDMC_PASSWORD }}"}' \
             -o response.json
@@ -34,7 +34,7 @@ jobs:
       
       - name: Deploy to Informatica IDMC QA/Int
         run: |
-          curl -X POST "https://<INFORMATICA_BASE_URL>/api/v2/deploy" \
+          curl -X POST "https://dm-us.informaticacloud.com/api/v2/deploy" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $TOKEN" \
             -d '{"sourceOrg": "DEV", "targetOrg": "QA", "assets": ["all"]}'
